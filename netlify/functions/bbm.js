@@ -1,20 +1,18 @@
 const { Client } = require('pg');
 
 exports.handler = async (event, context) => {
-    // Membaca link Neon dari Environment Variable Netlify
     const client = new Client({ connectionString: process.env.NETLIFY_DATABASE_URL });
 
     try {
         await client.connect();
 
-        // 1. OTOMATIS BIKIN TABEL KALAU BELUM ADA
         await client.query(`
             CREATE TABLE IF NOT EXISTS bbm_users (
                 username VARCHAR(50) PRIMARY KEY,
                 password VARCHAR(50) NOT NULL,
                 chips INTEGER DEFAULT 0,
                 totalPay INTEGER DEFAULT 0,
-                guess INTEGER,
+                guess VARCHAR(500), 
                 isPaid BOOLEAN DEFAULT true
             );
             CREATE TABLE IF NOT EXISTS bbm_settings (
@@ -25,9 +23,11 @@ exports.handler = async (event, context) => {
             SELECT 'open' WHERE NOT EXISTS (SELECT 1 FROM bbm_settings);
         `);
 
+        // UPGRADE OTOMATIS: Mengubah tipe kolom tebakan agar bisa nampung banyak
+        try { await client.query('ALTER TABLE bbm_users ALTER COLUMN guess TYPE VARCHAR(500)'); } catch(e) {}
+
         const method = event.httpMethod;
 
-        // 2. MENGAMBIL DATA (Tampil di Dashboard)
         if (method === 'GET') {
             const usersRes = await client.query('SELECT * FROM bbm_users ORDER BY totalPay DESC');
             const statusRes = await client.query('SELECT game_status FROM bbm_settings LIMIT 1');
@@ -37,7 +37,6 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // 3. MENYIMPAN / UPDATE DATA DARI HP PEMAIN & THEO
         if (method === 'POST') {
             const data = JSON.parse(event.body);
 
