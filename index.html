@@ -50,9 +50,6 @@
 
             <div id="screen-register" class="hidden flex-col flex-grow">
                 <h2 class="text-xl font-black text-sky-400 mb-2 text-center">DAFTAR PESERTA BARU</h2>
-                <div class="bg-red-900/40 border border-red-500 p-3 rounded-xl mb-4">
-                    <p class="text-[11px] text-slate-300 text-center font-bold">Ingat baik-baik Nama dan Ikan pilihanmu untuk masuk kembali!</p>
-                </div>
                 <div class="bg-slate-800/50 p-5 rounded-2xl border border-slate-700 space-y-4">
                     <input type="text" id="reg-username" placeholder="Buat Username (Cth: Aulia)" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 font-bold">
                     <select id="reg-password" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 font-bold appearance-none">
@@ -100,7 +97,6 @@
                 <div id="alert-closed" class="hidden bg-red-900/50 border border-red-500 p-4 rounded-2xl text-center mb-4 shadow-lg">
                     <i class="fa-solid fa-lock text-4xl text-red-500 mb-2"></i>
                     <h3 class="font-black text-red-400 text-lg tracking-widest">TARUHAN DITUTUP!</h3>
-                    <p class="text-xs text-red-200 mt-1">Anda tidak bisa lagi membeli chip atau mengganti tebakan.</p>
                 </div>
 
                 <div id="active-game-area" class="space-y-4">
@@ -110,8 +106,7 @@
                         <h3 class="text-green-400 font-black mb-1"><i class="fa-solid fa-crosshairs"></i> TARGET KENAIKAN BBM</h3>
                         <p class="text-[10px] text-slate-400 mb-3 font-bold border-b border-slate-700 pb-2">Hak Tebakan Anda: <span id="label-jml-tebakan" class="text-yellow-400 text-xs">0</span></p>
                         
-                        <div id="guess-container" class="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
-                            </div>
+                        <div id="guess-container" class="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1"></div>
                         
                         <button onclick="submitGuess()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl transition text-sm shadow-lg">SIMPAN / UBAH SEMUA TEBAKAN</button>
                     </div>
@@ -163,7 +158,6 @@
         let currentUser = null;
         let isEditingGuess = false; 
 
-        // GENERATOR RANGE HTML UNTUK DROPDOWN
         function getRangeOptionsHTML() {
             let html = '<option value="">-- Pilih Range Harga --</option>';
             for (let i = 10001; i <= 25000; i += 250) {
@@ -175,9 +169,13 @@
 
         async function fetchDatabase(showLoading = false) {
             if(showLoading) document.getElementById('loading-overlay').style.display = 'flex';
+            
             try {
                 const res = await fetch(API_URL);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
                 usersDB = data.users;
                 gameStatus = data.status;
                 
@@ -191,6 +189,8 @@
                 }
             } catch (error) {
                 console.error("Gagal konek DB:", error);
+                document.getElementById('header-status').innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ERROR: ${error.message}`;
+                document.getElementById('header-status').className = "text-[10px] text-red-500 mt-1 font-black uppercase";
             } finally {
                 if(showLoading) document.getElementById('loading-overlay').style.display = 'none';
             }
@@ -273,13 +273,15 @@
             document.getElementById('dash-bill').innerText = currentUser.totalpay.toLocaleString('id-ID'); 
             document.getElementById('label-jml-tebakan').innerText = currentUser.chips;
             
-            // GENERATE DROPDOWN SESUAI JUMLAH CHIP
             const container = document.getElementById('guess-container');
             
             if (!isEditingGuess) {
-                container.innerHTML = ''; // Kosongkan dulu
+                container.innerHTML = '';
                 let savedGuesses = [];
-                if (currentUser.guess) savedGuesses = currentUser.guess.split(','); // Pecah data dari DB
+                // PERHATIAN: Membaca dari kolom guesses yang baru!
+                if (currentUser.guesses) {
+                    savedGuesses = currentUser.guesses.toString().split(','); 
+                }
 
                 if (currentUser.chips === 0) {
                     container.innerHTML = '<p class="text-xs text-slate-500 text-center italic py-2">Beli chip di bawah untuk mulai menebak.</p>';
@@ -288,7 +290,7 @@
                         const select = document.createElement('select');
                         select.className = "guess-dropdown w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-2.5 text-green-400 font-bold text-sm focus:border-green-500 outline-none appearance-none cursor-pointer";
                         select.innerHTML = getRangeOptionsHTML();
-                        if (savedGuesses[i]) select.value = savedGuesses[i]; // Masukkan angka yang disave sebelumnya
+                        if (savedGuesses[i]) select.value = savedGuesses[i]; 
                         
                         select.addEventListener('change', () => isEditingGuess = true);
                         container.appendChild(select);
@@ -330,12 +332,12 @@
                         action: 'update_user', username: currentUser.username, 
                         chips: currentUser.chips + qty, 
                         totalPay: currentUser.totalpay + cost, 
-                        guess: currentUser.guess, isPaid: false 
+                        guesses: currentUser.guesses, isPaid: false 
                     })
                 });
                 
                 document.getElementById('input-chips').value = '';
-                isEditingGuess = false; // Biar dropdown langsung ke-refresh tambah banyak
+                isEditingGuess = false; 
                 await fetchDatabase(); 
                 document.getElementById('loading-overlay').style.display = 'none';
             }
@@ -345,14 +347,122 @@
             if (currentUser.chips <= 0) { alert("Beli chip dulu dong Bos!"); return; }
 
             const dropdowns = document.querySelectorAll('.guess-dropdown');
-            let guesses = [];
+            let guessesArr = [];
             let isComplete = true;
 
             dropdowns.forEach(dd => {
                 if (!dd.value) isComplete = false;
-                else guesses.push(dd.value); // Tampung semua tebakan
+                else guessesArr.push(dd.value); 
             });
 
             if (!isComplete) { alert("Pilih tebakan untuk SEMUA chip-mu Bos!"); return; }
 
-            const guessString = guesses.join(','); // Jadikan string berderet kom
+            const guessString = guessesArr.join(','); 
+
+            document.getElementById('loading-overlay').style.display = 'flex';
+            await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    action: 'update_user', username: currentUser.username, 
+                    chips: currentUser.chips, totalPay: currentUser.totalpay, 
+                    guesses: guessString, isPaid: currentUser.ispaid 
+                })
+            });
+            isEditingGuess = false; 
+            await fetchDatabase();
+            document.getElementById('loading-overlay').style.display = 'none';
+            alert("Tebakan berhasil dikunci ke Database Pusat!");
+        }
+
+        // --- ADMIN / THEO ---
+        function loginAdmin() {
+            const user = document.getElementById('admin-username').value;
+            const pass = document.getElementById('admin-password').value;
+            if (user === "Theo" && pass === "Monica") {
+                currentUser = { username: 'Theo' };
+                refreshAdminDashboard();
+                showScreen('screen-admin-dashboard');
+            } else { alert("Akses Ditolak!"); }
+        }
+
+        function refreshAdminDashboard() {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+            
+            const btnToggle = document.getElementById('btn-toggle-game');
+            if (gameStatus === 'open') {
+                btnToggle.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> Tutup Taruhan';
+                btnToggle.className = "bg-red-600 hover:bg-red-500 text-white text-[10px] font-black px-4 py-2 rounded-lg shadow-lg uppercase transition";
+            } else {
+                btnToggle.innerHTML = '<i class="fa-solid fa-lock-open mr-1"></i> Buka Taruhan';
+                btnToggle.className = "bg-green-600 hover:bg-green-500 text-white text-[10px] font-black px-4 py-2 rounded-lg shadow-lg uppercase transition";
+            }
+
+            usersDB.forEach(u => {
+                if(u.totalpay > 0) {
+                    const row = document.createElement('div');
+                    row.className = "bg-slate-900 border border-slate-700 p-3 rounded-xl flex items-center justify-between";
+                    
+                    let guessText = '';
+                    if (u.guesses) {
+                        const arr = u.guesses.toString().split(',');
+                        const formatted = arr.map(val => {
+                            const num = parseInt(val);
+                            return `${num.toLocaleString('id-ID')} - ${(num+249).toLocaleString('id-ID')}`;
+                        });
+                        guessText = formatted.join('<br><span class="text-slate-600">--</span><br>');
+                    } else {
+                        guessText = `<span class="text-slate-600 text-[10px] italic">Belum Milih</span>`;
+                    }
+                    
+                    let actionHtml = '';
+                    if (u.ispaid) {
+                        actionHtml = `<span class="text-green-400 font-black text-xs uppercase block mb-1"><i class="fa-solid fa-check"></i> LUNAS</span>
+                                      <span class="text-[10px] text-slate-400 font-bold bg-slate-800 px-2 py-1 rounded">Tagihan: ${(u.totalpay/1000)}k</span>`;
+                    } else {
+                        actionHtml = `<button onclick="confirmPaymentAdmin('${u.username}', ${u.totalpay})" class="bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow uppercase w-full mb-1 leading-tight">Sahkan<br>Rp ${(u.totalpay/1000)}k</button>`;
+                    }
+
+                    row.innerHTML = `
+                        <div class="w-1/3 pr-2">
+                            <p class="font-bold text-sky-400 text-sm truncate">${u.username}</p>
+                            <p class="text-[11px] text-slate-400 font-bold"><i class="fa-solid fa-coins text-yellow-500"></i> ${u.chips} Chip</p>
+                        </div>
+                        <div class="w-1/3 text-center font-black text-green-400 text-[10px] leading-tight max-h-24 overflow-y-auto">
+                            ${guessText}
+                        </div>
+                        <div class="w-1/3 text-right pl-2">
+                            ${actionHtml}
+                        </div>
+                    `;
+                    tbody.appendChild(row);
+                }
+            });
+            if (tbody.innerHTML === '') tbody.innerHTML = '<div class="text-center text-slate-500 text-sm mt-10 font-bold">Belum ada peserta.</div>';
+        }
+
+        async function confirmPaymentAdmin(username, total) {
+            if(confirm(`Konfirmasi pembayaran Rp ${total.toLocaleString('id-ID')} dari ${username} sudah LUNAS di rekening?`)) {
+                document.getElementById('loading-overlay').style.display = 'flex';
+                await fetch(API_URL, {
+                    method: 'POST', body: JSON.stringify({ action: 'admin_confirm', username })
+                });
+                await fetchDatabase();
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
+
+        async function toggleGame() {
+            const newStatus = gameStatus === 'open' ? 'closed' : 'open';
+            if(confirm(newStatus === 'closed' ? "Yakin ingin MENUTUP TARUHAN? Peserta tidak bisa ganti angka lagi!" : "Yakin BUKA KEMBALI taruhan?")) {
+                document.getElementById('loading-overlay').style.display = 'flex';
+                await fetch(API_URL, {
+                    method: 'POST', body: JSON.stringify({ action: 'admin_toggle', status: newStatus })
+                });
+                await fetchDatabase();
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
