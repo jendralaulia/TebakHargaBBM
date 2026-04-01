@@ -27,7 +27,10 @@ exports.handler = async (event, context) => {
             );
         `);
 
+        // UPGRADE DATABASE: Tambah kolom antrean transaksi
         await client.query(`ALTER TABLE bbm_users ADD COLUMN IF NOT EXISTS guesses VARCHAR(500);`);
+        await client.query(`ALTER TABLE bbm_users ADD COLUMN IF NOT EXISTS pending_chips INTEGER DEFAULT 0;`);
+        await client.query(`ALTER TABLE bbm_users ADD COLUMN IF NOT EXISTS unpaid_bill INTEGER DEFAULT 0;`);
 
         const checkSet = await client.query('SELECT * FROM bbm_settings');
         if(checkSet.rows.length === 0) {
@@ -37,7 +40,7 @@ exports.handler = async (event, context) => {
         const method = event.httpMethod;
 
         if (method === 'GET') {
-            const usersRes = await client.query('SELECT username, password, chips, totalpay, guesses, ispaid FROM bbm_users ORDER BY totalpay DESC');
+            const usersRes = await client.query('SELECT username, password, chips, totalpay, guesses, ispaid, pending_chips, unpaid_bill FROM bbm_users ORDER BY totalpay DESC');
             const statusRes = await client.query('SELECT game_status FROM bbm_settings LIMIT 1');
             return {
                 statusCode: 200,
@@ -53,22 +56,37 @@ exports.handler = async (event, context) => {
                 if (check.rows.length > 0) return { statusCode: 400, body: JSON.stringify({ error: 'Username terpakai' }) };
 
                 await client.query(
-                    'INSERT INTO bbm_users (username, password, chips, totalPay, guesses, isPaid) VALUES ($1, $2, $3, $4, $5, $6)',
-                    [data.username, data.password, 0, 0, null, true]
+                    'INSERT INTO bbm_users (username, password, chips, totalPay, guesses, isPaid, pending_chips, unpaid_bill) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+                    [data.username, data.password, 0, 0, null, true, 0, 0]
                 );
                 return { statusCode: 200, body: JSON.stringify({ success: true }) };
             }
 
-            if (data.action === 'update_user') {
+            // AKSI: USER BELI CHIP (Masuk ke antrean)
+            if (data.action === 'buy_chips') {
                 await client.query(
-                    'UPDATE bbm_users SET chips = $1, totalPay = $2, guesses = $3, isPaid = $4 WHERE username = $5',
-                    [data.chips, data.totalPay, data.guesses, data.isPaid, data.username]
+                    'UPDATE bbm_users SET pending_chips = pending_chips + $1, unpaid_bill = unpaid_bill + $2, isPaid = false WHERE username = $3',
+                    [data.qty, data.cost, data.username]
                 );
                 return { statusCode: 200, body: JSON.stringify({ success: true }) };
             }
 
+            // AKSI: USER SIMPAN TEBAKAN
+            if (data.action === 'save_guesses') {
+                await client.query(
+                    'UPDATE bbm_users SET guesses = $1 WHERE username = $2',
+                    [data.guesses, data.username]
+                );
+                return { statusCode: 200, body: JSON.stringify({ success: true }) };
+            }
+
+            // AKSI: THEO MENGESAHKAN PEMBAYARAN
             if (data.action === 'admin_confirm') {
-                await client.query('UPDATE bbm_users SET isPaid = true WHERE username = $1', [data.username]);
+                // Pindahkan chip pending ke chip aktif, lalu reset tagihan jadi 0
+                await client.query(
+                    'UPDATE bbm_users SET chips = chips + pending_chips, totalPay = totalPay + unpaid_bill, pending_chips = 0, unpaid_bill = 0, isPaid = true WHERE username = $1',
+                    [data.username]
+                );
                 return { statusCode: 200, body: JSON.stringify({ success: true }) };
             }
 
@@ -77,14 +95,9 @@ exports.handler = async (event, context) => {
                 return { statusCode: 200, body: JSON.stringify({ success: true }) };
             }
 
-            // === FITUR BARU: TOMBOL NUKLIR BOS THEO ===
             if (data.action === 'admin_reset') {
-                // Keamanan Ganda: Cek password dari backend juga!
-                if (data.password !== 'Monica') {
-                    return { statusCode: 403, body: JSON.stringify({ error: 'Password Nuklir Salah!' }) };
-                }
-                // Hapus semua chip, tagihan, dan tebakan (Kembalikan isPaid jadi true agar tidak ada hutang nyangkut)
-                await client.query('UPDATE bbm_users SET chips = 0, totalPay = 0, guesses = NULL, isPaid = true');
+                if (data.password !== 'Monica') return { statusCode: 403, body: JSON.stringify({ error: 'Password Nuklir Salah!' }) };
+                await client.query('UPDATE bbm_users SET chips = 0, totalPay = 0, guesses = NULL, isPaid = true, pending_chips = 0, unpaid_bill = 0');
                 return { statusCode: 200, body: JSON.stringify({ success: true }) };
             }
         }
