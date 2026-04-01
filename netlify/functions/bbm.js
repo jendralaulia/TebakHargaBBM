@@ -1,12 +1,10 @@
 const { Client } = require('pg');
 
 exports.handler = async (event, context) => {
-    // 1. CEK DARURAT: Apakah Kunci Neon Kosong?
     if (!process.env.NETLIFY_DATABASE_URL) {
         return { statusCode: 500, body: JSON.stringify({ error: "DATABASE URL KOSONG DI NETLIFY!" }) };
     }
 
-    // JURUS PELICIN SSL (ANTI NGE-HANG UNTUK NEON DB)
     const client = new Client({ 
         connectionString: process.env.NETLIFY_DATABASE_URL,
         ssl: { rejectUnauthorized: false } 
@@ -15,14 +13,13 @@ exports.handler = async (event, context) => {
     try {
         await client.connect();
 
-        // 2. BIKIN TABEL KALAU BELUM ADA
+        // 1. BUAT TABEL DASAR
         await client.query(`
             CREATE TABLE IF NOT EXISTS bbm_users (
                 username VARCHAR(50) PRIMARY KEY,
                 password VARCHAR(50) NOT NULL,
                 chips INTEGER DEFAULT 0,
                 totalPay INTEGER DEFAULT 0,
-                guess VARCHAR(500), 
                 isPaid BOOLEAN DEFAULT true
             );
             CREATE TABLE IF NOT EXISTS bbm_settings (
@@ -31,24 +28,21 @@ exports.handler = async (event, context) => {
             );
         `);
 
-        // Pastikan status bandar (Theo) sudah terisi
+        // 2. JURUS ANTI BENTROK: Bikin Kolom Baru Khusus Banyak Tebakan
+        await client.query(`
+            ALTER TABLE bbm_users ADD COLUMN IF NOT EXISTS guesses VARCHAR(500);
+        `);
+
         const checkSet = await client.query('SELECT * FROM bbm_settings');
         if(checkSet.rows.length === 0) {
             await client.query("INSERT INTO bbm_settings (game_status) VALUES ('open')");
         }
 
-        // 3. JURUS BULDOSER: Paksa ubah tipe kolom tebakan jadi teks (buat nampung banyak tebakan)
-        try {
-            await client.query('ALTER TABLE bbm_users ALTER COLUMN guess TYPE VARCHAR(500) USING guess::VARCHAR');
-        } catch(e) {
-            // Abaikan kalau kolom sudah benar
-        }
-
         const method = event.httpMethod;
 
-        // --- TARIK DATA KE LAYAR ---
         if (method === 'GET') {
-            const usersRes = await client.query('SELECT * FROM bbm_users ORDER BY totalPay DESC');
+            // Tarik data dengan kolom 'guesses' yang baru
+            const usersRes = await client.query('SELECT username, password, chips, totalpay, guesses, ispaid FROM bbm_users ORDER BY totalpay DESC');
             const statusRes = await client.query('SELECT game_status FROM bbm_settings LIMIT 1');
             return {
                 statusCode: 200,
@@ -56,7 +50,6 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // --- TERIMA INPUT DARI LAYAR ---
         if (method === 'POST') {
             const data = JSON.parse(event.body);
 
@@ -65,7 +58,7 @@ exports.handler = async (event, context) => {
                 if (check.rows.length > 0) return { statusCode: 400, body: JSON.stringify({ error: 'Username terpakai' }) };
 
                 await client.query(
-                    'INSERT INTO bbm_users (username, password, chips, totalPay, guess, isPaid) VALUES ($1, $2, $3, $4, $5, $6)',
+                    'INSERT INTO bbm_users (username, password, chips, totalPay, guesses, isPaid) VALUES ($1, $2, $3, $4, $5, $6)',
                     [data.username, data.password, 0, 0, null, true]
                 );
                 return { statusCode: 200, body: JSON.stringify({ success: true }) };
@@ -73,8 +66,8 @@ exports.handler = async (event, context) => {
 
             if (data.action === 'update_user') {
                 await client.query(
-                    'UPDATE bbm_users SET chips = $1, totalPay = $2, guess = $3, isPaid = $4 WHERE username = $5',
-                    [data.chips, data.totalPay, data.guess, data.isPaid, data.username]
+                    'UPDATE bbm_users SET chips = $1, totalPay = $2, guesses = $3, isPaid = $4 WHERE username = $5',
+                    [data.chips, data.totalPay, data.guesses, data.isPaid, data.username]
                 );
                 return { statusCode: 200, body: JSON.stringify({ success: true }) };
             }
@@ -92,7 +85,6 @@ exports.handler = async (event, context) => {
 
         return { statusCode: 405, body: "Method Not Allowed" };
     } catch (error) {
-        // KALAU MASIH ERROR, DIA AKAN MUNCULIN PESAN ERRORNYA (BUKAN NGE-HANG LAGI)
         return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
     } finally {
         await client.end();
