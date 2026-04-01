@@ -1,11 +1,21 @@
 const { Client } = require('pg');
 
 exports.handler = async (event, context) => {
-    const client = new Client({ connectionString: process.env.NETLIFY_DATABASE_URL });
+    // 1. CEK DARURAT: Apakah Kunci Neon Kosong?
+    if (!process.env.NETLIFY_DATABASE_URL) {
+        return { statusCode: 500, body: JSON.stringify({ error: "DATABASE URL KOSONG DI NETLIFY!" }) };
+    }
+
+    // JURUS PELICIN SSL (ANTI NGE-HANG UNTUK NEON DB)
+    const client = new Client({ 
+        connectionString: process.env.NETLIFY_DATABASE_URL,
+        ssl: { rejectUnauthorized: false } 
+    });
 
     try {
         await client.connect();
 
+        // 2. BIKIN TABEL KALAU BELUM ADA
         await client.query(`
             CREATE TABLE IF NOT EXISTS bbm_users (
                 username VARCHAR(50) PRIMARY KEY,
@@ -19,15 +29,24 @@ exports.handler = async (event, context) => {
                 id SERIAL PRIMARY KEY,
                 game_status VARCHAR(20) DEFAULT 'open'
             );
-            INSERT INTO bbm_settings (game_status)
-            SELECT 'open' WHERE NOT EXISTS (SELECT 1 FROM bbm_settings);
         `);
 
-        // UPGRADE OTOMATIS: Mengubah tipe kolom tebakan agar bisa nampung banyak
-        try { await client.query('ALTER TABLE bbm_users ALTER COLUMN guess TYPE VARCHAR(500)'); } catch(e) {}
+        // Pastikan status bandar (Theo) sudah terisi
+        const checkSet = await client.query('SELECT * FROM bbm_settings');
+        if(checkSet.rows.length === 0) {
+            await client.query("INSERT INTO bbm_settings (game_status) VALUES ('open')");
+        }
+
+        // 3. JURUS BULDOSER: Paksa ubah tipe kolom tebakan jadi teks (buat nampung banyak tebakan)
+        try {
+            await client.query('ALTER TABLE bbm_users ALTER COLUMN guess TYPE VARCHAR(500) USING guess::VARCHAR');
+        } catch(e) {
+            // Abaikan kalau kolom sudah benar
+        }
 
         const method = event.httpMethod;
 
+        // --- TARIK DATA KE LAYAR ---
         if (method === 'GET') {
             const usersRes = await client.query('SELECT * FROM bbm_users ORDER BY totalPay DESC');
             const statusRes = await client.query('SELECT game_status FROM bbm_settings LIMIT 1');
@@ -37,6 +56,7 @@ exports.handler = async (event, context) => {
             };
         }
 
+        // --- TERIMA INPUT DARI LAYAR ---
         if (method === 'POST') {
             const data = JSON.parse(event.body);
 
@@ -72,6 +92,7 @@ exports.handler = async (event, context) => {
 
         return { statusCode: 405, body: "Method Not Allowed" };
     } catch (error) {
+        // KALAU MASIH ERROR, DIA AKAN MUNCULIN PESAN ERRORNYA (BUKAN NGE-HANG LAGI)
         return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
     } finally {
         await client.end();
