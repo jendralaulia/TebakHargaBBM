@@ -13,7 +13,6 @@ exports.handler = async (event, context) => {
     try {
         await client.connect();
 
-        // 1. BUAT TABEL DASAR
         await client.query(`
             CREATE TABLE IF NOT EXISTS bbm_users (
                 username VARCHAR(50) PRIMARY KEY,
@@ -28,10 +27,7 @@ exports.handler = async (event, context) => {
             );
         `);
 
-        // 2. JURUS ANTI BENTROK: Bikin Kolom Baru Khusus Banyak Tebakan
-        await client.query(`
-            ALTER TABLE bbm_users ADD COLUMN IF NOT EXISTS guesses VARCHAR(500);
-        `);
+        await client.query(`ALTER TABLE bbm_users ADD COLUMN IF NOT EXISTS guesses VARCHAR(500);`);
 
         const checkSet = await client.query('SELECT * FROM bbm_settings');
         if(checkSet.rows.length === 0) {
@@ -41,7 +37,6 @@ exports.handler = async (event, context) => {
         const method = event.httpMethod;
 
         if (method === 'GET') {
-            // Tarik data dengan kolom 'guesses' yang baru
             const usersRes = await client.query('SELECT username, password, chips, totalpay, guesses, ispaid FROM bbm_users ORDER BY totalpay DESC');
             const statusRes = await client.query('SELECT game_status FROM bbm_settings LIMIT 1');
             return {
@@ -79,6 +74,17 @@ exports.handler = async (event, context) => {
 
             if (data.action === 'admin_toggle') {
                 await client.query('UPDATE bbm_settings SET game_status = $1', [data.status]);
+                return { statusCode: 200, body: JSON.stringify({ success: true }) };
+            }
+
+            // === FITUR BARU: TOMBOL NUKLIR BOS THEO ===
+            if (data.action === 'admin_reset') {
+                // Keamanan Ganda: Cek password dari backend juga!
+                if (data.password !== 'Monica') {
+                    return { statusCode: 403, body: JSON.stringify({ error: 'Password Nuklir Salah!' }) };
+                }
+                // Hapus semua chip, tagihan, dan tebakan (Kembalikan isPaid jadi true agar tidak ada hutang nyangkut)
+                await client.query('UPDATE bbm_users SET chips = 0, totalPay = 0, guesses = NULL, isPaid = true');
                 return { statusCode: 200, body: JSON.stringify({ success: true }) };
             }
         }
