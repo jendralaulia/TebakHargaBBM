@@ -15,6 +15,11 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         #loading-overlay { z-index: 100; backdrop-filter: blur(5px); }
+        
+        /* Custom scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 to-slate-800">
@@ -35,7 +40,42 @@
 
         <div class="p-6 flex-grow flex flex-col relative overflow-y-auto">
 
-            <div id="screen-home" class="flex flex-col flex-grow justify-center space-y-4">
+            <div id="screen-landing" class="flex flex-col flex-grow">
+                <h2 class="text-xl font-black text-amber-400 mb-3 text-center border-b border-slate-700 pb-2"><i class="fa-solid fa-scroll"></i> ATURAN MAIN</h2>
+                
+                <div class="bg-slate-800/80 border border-slate-600 rounded-2xl p-4 shadow-inner flex-grow overflow-y-auto custom-scroll mb-4 space-y-3">
+                    <p class="text-[13px] text-slate-300 font-bold">Selamat datang di Arena Toto BBM! Sebelum bertaruh, pahami aturan tongkrongan ini:</p>
+                    
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="text-sky-400 mr-2"><i class="fa-solid fa-1"></i></span>
+                            <p class="text-[12px] text-slate-300 leading-tight"><strong>Harga Taruhan:</strong> 1 Chip berharga <strong class="text-green-400">Rp 50.000</strong>. Wajib ditransfer ke rekening <strong class="text-amber-500">Bandar Theo</strong>.</p>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-sky-400 mr-2"><i class="fa-solid fa-2"></i></span>
+                            <p class="text-[12px] text-slate-300 leading-tight"><strong>Diversifikasi Chip:</strong> Pemain bebas membeli banyak chip dan <strong class="text-yellow-400">menyebarkannya</strong> ke berbagai rentang harga BBM yang berbeda agar peluang menang lebih besar.</p>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-sky-400 mr-2"><i class="fa-solid fa-3"></i></span>
+                            <p class="text-[12px] text-slate-300 leading-tight"><strong>Ubah Tebakan:</strong> Selama status taruhan "DIBUKA", Anda bebas mengubah tebakan dan memindahkan chip Anda kapan saja.</p>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-sky-400 mr-2"><i class="fa-solid fa-4"></i></span>
+                            <p class="text-[12px] text-slate-300 leading-tight"><strong>Waktu Kritis:</strong> Taruhan bisa <strong class="text-red-400">DITUTUP SECARA SEPIHAK</strong> oleh Bandar mendekati pengumuman resmi. Setelah digembok, data tak bisa diubah!</p>
+                        </li>
+                    </ul>
+
+                    <div class="bg-amber-900/30 border border-amber-700/50 p-3 rounded-xl text-center mt-2">
+                        <p class="text-[11px] text-amber-400 italic font-bold">"Jangan taruh semua telurmu dalam satu keranjang. Sebar chip-mu!"</p>
+                    </div>
+                </div>
+
+                <button onclick="showScreen('screen-home')" class="w-full bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-xl shadow-lg transition transform hover:-translate-y-1 text-sm tracking-widest border border-green-500">
+                    SAYA MENGERTI & LANJUT MAIN <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+
+            <div id="screen-home" class="hidden flex-col flex-grow justify-center space-y-4">
                 <button onclick="showScreen('screen-register')" class="bg-sky-600 hover:bg-sky-500 text-white font-black py-4 px-6 rounded-2xl shadow-lg transition transform hover:-translate-y-1 text-lg border border-sky-400">
                     <i class="fa-solid fa-user-plus mr-2"></i> IKUT MAIN (DAFTAR)
                 </button>
@@ -46,10 +86,16 @@
                 <button onclick="showScreen('screen-admin-login')" class="bg-slate-900 hover:bg-black text-amber-500 font-bold py-3 px-6 rounded-2xl transition border border-amber-900">
                     <i class="fa-solid fa-user-tie mr-2"></i> Ruang Bandar (Theo)
                 </button>
+                <button onclick="showScreen('screen-landing')" class="text-slate-500 text-xs mt-4 hover:text-white font-bold text-center">
+                    <i class="fa-solid fa-circle-question mr-1"></i> Baca Aturan Main
+                </button>
             </div>
 
             <div id="screen-register" class="hidden flex-col flex-grow">
                 <h2 class="text-xl font-black text-sky-400 mb-2 text-center">DAFTAR PESERTA BARU</h2>
+                <div class="bg-red-900/40 border border-red-500 p-3 rounded-xl mb-4">
+                    <p class="text-[11px] text-slate-300 text-center font-bold">Ingat baik-baik Nama dan Ikan pilihanmu untuk masuk kembali!</p>
+                </div>
                 <div class="bg-slate-800/50 p-5 rounded-2xl border border-slate-700 space-y-4">
                     <input type="text" id="reg-username" placeholder="Buat Username (Cth: Aulia)" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 font-bold">
                     <select id="reg-password" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 font-bold appearance-none">
@@ -89,30 +135,44 @@
             </div>
 
             <div id="screen-user-dashboard" class="hidden flex-col flex-grow">
-                <div class="flex justify-between items-center mb-4 bg-slate-800 p-3 rounded-xl border border-slate-700">
+                
+                <div class="flex justify-between items-center mb-4 bg-slate-800 p-3 rounded-xl border border-slate-700 shadow">
                     <span class="text-sm text-slate-400">Pemain: <span id="dash-username" class="font-bold text-sky-400 text-lg">Nama</span></span>
-                    <span class="bg-sky-900/80 text-sky-300 px-4 py-1.5 rounded-full text-sm font-black shadow-inner"><i class="fa-solid fa-coins text-yellow-400"></i> <span id="dash-chips">0</span> CHIP</span>
+                    <span class="bg-sky-900/80 text-sky-300 px-4 py-1.5 rounded-full text-sm font-black shadow-inner">
+                        <i class="fa-solid fa-coins text-yellow-400 mr-1"></i> <span id="dash-chips">0</span> CHIP
+                    </span>
                 </div>
 
                 <div id="alert-closed" class="hidden bg-red-900/50 border border-red-500 p-4 rounded-2xl text-center mb-4 shadow-lg">
                     <i class="fa-solid fa-lock text-4xl text-red-500 mb-2"></i>
                     <h3 class="font-black text-red-400 text-lg tracking-widest">TARUHAN DITUTUP!</h3>
+                    <p class="text-xs text-red-200 mt-1">Sistem dikunci oleh Bandar. Menunggu pengumuman pemenang!</p>
                 </div>
 
                 <div id="active-game-area" class="space-y-4">
                     
-                    <div class="bg-slate-800 border border-slate-600 rounded-2xl p-5 shadow-lg relative overflow-hidden">
-                        <div class="absolute top-0 right-0 bg-slate-700 text-[10px] px-3 py-1 rounded-bl-lg text-slate-300 font-bold uppercase">Pilih Range</div>
+                    <div class="bg-slate-800 border border-slate-600 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col">
+                        <div class="absolute top-0 right-0 bg-slate-700 text-[10px] px-3 py-1 rounded-bl-lg text-slate-300 font-bold uppercase">Distribusi Taruhan</div>
                         <h3 class="text-green-400 font-black mb-1"><i class="fa-solid fa-crosshairs"></i> TARGET KENAIKAN BBM</h3>
-                        <p class="text-[10px] text-slate-400 mb-3 font-bold border-b border-slate-700 pb-2">Hak Tebakan Anda: <span id="label-jml-tebakan" class="text-yellow-400 text-xs">0</span></p>
                         
-                        <div id="guess-container" class="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1"></div>
+                        <div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-3">
+                            <button id="add-guess-btn" onclick="addGuessRow()" class="text-sky-400 text-xs font-bold hover:text-sky-300 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                                <i class="fa-solid fa-plus mr-1"></i> Taruh di Target Lain
+                            </button>
+                            <div class="text-[10px] text-slate-400 font-bold bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700">
+                                Sisa Chip: <span id="unallocated-chips" class="text-yellow-400 font-black text-sm ml-1">0</span>
+                            </div>
+                        </div>
                         
-                        <button onclick="submitGuess()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl transition text-sm shadow-lg">SIMPAN / UBAH SEMUA TEBAKAN</button>
+                        <div id="guesses-wrapper" class="space-y-2 mb-4 max-h-48 overflow-y-auto custom-scroll pr-2 flex-grow"></div>
+                        
+                        <button onclick="submitGuess()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl transition text-sm shadow-lg border border-green-500">
+                            SIMPAN SEMUA TEBAKAN <i class="fa-solid fa-cloud-arrow-up ml-1"></i>
+                        </button>
                     </div>
 
                     <div class="bg-slate-800 border border-slate-600 rounded-2xl p-5 shadow-lg">
-                        <h3 class="text-sky-400 font-black mb-3"><i class="fa-solid fa-cart-shopping"></i> BELI/TAMBAH CHIP</h3>
+                        <h3 class="text-sky-400 font-black mb-3"><i class="fa-solid fa-cart-shopping"></i> BELI / TAMBAH CHIP</h3>
                         <div class="flex items-center space-x-3 mb-3">
                             <input type="number" id="input-chips" placeholder="Jml" min="1" class="w-20 bg-slate-900 border border-slate-600 rounded-xl px-3 py-2 text-white font-black text-center text-xl">
                             <span class="text-slate-400 font-bold text-sm">x Rp 50.000</span>
@@ -132,19 +192,24 @@
 
             <div id="screen-admin-dashboard" class="hidden flex-col flex-grow h-full">
                 <div class="flex justify-between items-center mb-4 bg-slate-900 p-3 rounded-xl border border-amber-900/50">
-                    <span class="font-black text-amber-500"><i class="fa-solid fa-user-tie"></i> BANDAR THEO</span>
-                    <button id="btn-toggle-game" onclick="toggleGame()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-black px-4 py-2 rounded-lg shadow-lg uppercase transition">
-                        <i class="fa-solid fa-lock mr-1"></i> Tutup Taruhan
-                    </button>
+                    <span class="font-black text-amber-500"><i class="fa-solid fa-user-tie"></i> BANDAR</span>
+                    <div class="flex space-x-2">
+                        <button id="btn-toggle-game" onclick="toggleGame()" class="bg-red-600 hover:bg-red-500 text-white text-[10px] font-black px-3 py-2 rounded-lg shadow-lg uppercase transition">
+                            <i class="fa-solid fa-lock mr-1"></i> Tutup
+                        </button>
+                        <button onclick="resetDataNuklir()" class="bg-slate-800 hover:bg-red-900 text-red-500 hover:text-white border border-red-900 text-[10px] font-black px-3 py-2 rounded-lg shadow-lg uppercase transition">
+                            <i class="fa-solid fa-skull"></i> Reset
+                        </button>
+                    </div>
                 </div>
 
                 <div class="bg-slate-800 border border-slate-600 rounded-2xl flex-grow flex flex-col mb-2 overflow-hidden">
                     <div class="p-3 bg-slate-900 border-b border-slate-700 flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
                         <span class="w-1/3">Pemain</span>
-                        <span class="w-1/3 text-center">Tebakan</span>
-                        <span class="w-1/3 text-right">Status</span>
+                        <span class="w-1/3 text-center">Taruhan (Chip)</span>
+                        <span class="w-1/3 text-right">Status Kas</span>
                     </div>
-                    <div id="admin-table-body" class="overflow-y-auto p-2 space-y-2 flex-grow"></div>
+                    <div id="admin-table-body" class="overflow-y-auto custom-scroll p-2 space-y-2 flex-grow"></div>
                 </div>
             </div>
 
@@ -165,6 +230,47 @@
                 html += `<option value="${i}">${i.toLocaleString('id-ID')} - ${upper.toLocaleString('id-ID')}</option>`;
             }
             return html;
+        }
+
+        function addGuessRow(rangeVal = '', chipVal = 1, isInit = false) {
+            const container = document.getElementById('guesses-wrapper');
+            const row = document.createElement('div');
+            row.className = 'flex items-center space-x-2 guess-row bg-slate-900 p-2 rounded-xl border border-slate-700';
+            
+            row.innerHTML = `
+                <select class="guess-range flex-grow bg-slate-800 border border-slate-600 rounded-lg px-2 py-2 text-green-400 font-bold text-xs focus:border-green-500 outline-none appearance-none cursor-pointer">
+                    ${getRangeOptionsHTML()}
+                </select>
+                <div class="flex items-center space-x-1 bg-slate-800 border border-slate-600 rounded-lg px-2 py-1">
+                    <i class="fa-solid fa-coins text-yellow-500 text-[10px]"></i>
+                    <input type="number" class="guess-chip w-10 bg-transparent text-yellow-400 font-black text-center text-sm outline-none" min="1" value="${chipVal}">
+                </div>
+                <button onclick="this.parentElement.remove(); updateUnallocatedChips(); isEditingGuess = true;" class="text-red-500 px-2 py-1 hover:text-red-400 transition"><i class="fa-solid fa-trash"></i></button>
+            `;
+            
+            if(rangeVal) row.querySelector('.guess-range').value = rangeVal;
+            
+            row.querySelector('.guess-chip').addEventListener('input', () => { updateUnallocatedChips(); isEditingGuess = true; });
+            row.querySelector('.guess-range').addEventListener('change', () => { isEditingGuess = true; });
+            
+            container.appendChild(row);
+            
+            if (!isInit) isEditingGuess = true;
+            updateUnallocatedChips();
+        }
+
+        function updateUnallocatedChips() {
+            if(!currentUser) return;
+            let used = 0;
+            document.querySelectorAll('.guess-chip').forEach(input => {
+                used += (parseInt(input.value) || 0);
+            });
+            let left = currentUser.chips - used;
+            const span = document.getElementById('unallocated-chips');
+            span.innerText = left;
+            
+            if (left < 0) span.className = "text-red-500 font-black text-sm ml-1 animate-pulse";
+            else span.className = "text-yellow-400 font-black text-sm ml-1";
         }
 
         async function fetchDatabase(showLoading = false) {
@@ -200,22 +306,30 @@
         setInterval(() => fetchDatabase(false), 10000); 
 
         function showScreen(screenId) {
-            document.querySelectorAll('#screen-home, #screen-register, #screen-login, #screen-admin-login, #screen-user-dashboard, #screen-admin-dashboard').forEach(el => {
+            // Sembunyikan semua layar
+            document.querySelectorAll('#screen-landing, #screen-home, #screen-register, #screen-login, #screen-admin-login, #screen-user-dashboard, #screen-admin-dashboard').forEach(el => {
                 el.classList.add('hidden'); el.classList.remove('flex');
             });
+            // Tampilkan layar yang dituju
             document.getElementById(screenId).classList.remove('hidden');
             document.getElementById(screenId).classList.add('flex');
 
             const btnLogout = document.getElementById('btn-logout');
             const btnRefresh = document.getElementById('btn-refresh');
-            if(screenId === 'screen-home') { btnLogout.classList.add('hidden'); btnRefresh.classList.add('hidden'); }
-            else { btnLogout.classList.remove('hidden'); btnRefresh.classList.remove('hidden'); }
+            // Hanya munculkan logout & refresh kalau user sudah masuk dalam dashboard/menu dalam
+            if(screenId === 'screen-landing' || screenId === 'screen-home') { 
+                btnLogout.classList.add('hidden'); 
+                btnRefresh.classList.add('hidden'); 
+            } else { 
+                btnLogout.classList.remove('hidden'); 
+                btnRefresh.classList.remove('hidden'); 
+            }
         }
 
         function logout() {
             currentUser = null;
             document.querySelectorAll('input, select').forEach(el => el.value = '');
-            showScreen('screen-home');
+            showScreen('screen-home'); // Saat logout kembali ke menu tombol, bukan ke halaman aturan lagi
         }
 
         function updateHeaderStatus() {
@@ -271,31 +385,30 @@
             document.getElementById('dash-username').innerText = currentUser.username;
             document.getElementById('dash-chips').innerText = currentUser.chips;
             document.getElementById('dash-bill').innerText = currentUser.totalpay.toLocaleString('id-ID'); 
-            document.getElementById('label-jml-tebakan').innerText = currentUser.chips;
             
-            const container = document.getElementById('guess-container');
+            const container = document.getElementById('guesses-wrapper');
+            const addBtn = document.getElementById('add-guess-btn');
             
             if (!isEditingGuess) {
                 container.innerHTML = '';
-                let savedGuesses = [];
-                // PERHATIAN: Membaca dari kolom guesses yang baru!
-                if (currentUser.guesses) {
-                    savedGuesses = currentUser.guesses.toString().split(','); 
-                }
-
+                
                 if (currentUser.chips === 0) {
-                    container.innerHTML = '<p class="text-xs text-slate-500 text-center italic py-2">Beli chip di bawah untuk mulai menebak.</p>';
+                    container.innerHTML = '<p class="text-xs text-slate-500 text-center italic py-4">Beli chip di bawah untuk mulai menebak.</p>';
+                    addBtn.classList.add('hidden');
                 } else {
-                    for (let i = 0; i < currentUser.chips; i++) {
-                        const select = document.createElement('select');
-                        select.className = "guess-dropdown w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-2.5 text-green-400 font-bold text-sm focus:border-green-500 outline-none appearance-none cursor-pointer";
-                        select.innerHTML = getRangeOptionsHTML();
-                        if (savedGuesses[i]) select.value = savedGuesses[i]; 
-                        
-                        select.addEventListener('change', () => isEditingGuess = true);
-                        container.appendChild(select);
+                    addBtn.classList.remove('hidden');
+                    
+                    if (currentUser.guesses) {
+                        let savedGuesses = currentUser.guesses.toString().split(','); 
+                        savedGuesses.forEach(g => {
+                            let parts = g.split(':');
+                            addGuessRow(parts[0], parseInt(parts[1]) || 1, true);
+                        });
+                    } else {
+                        addGuessRow('', 1, true);
                     }
                 }
+                updateUnallocatedChips();
             }
 
             if(currentUser.totalpay > 0 && !currentUser.ispaid) {
@@ -346,18 +459,31 @@
         async function submitGuess() {
             if (currentUser.chips <= 0) { alert("Beli chip dulu dong Bos!"); return; }
 
-            const dropdowns = document.querySelectorAll('.guess-dropdown');
-            let guessesArr = [];
+            const rows = document.querySelectorAll('.guess-row');
+            let guessesMap = {};
             let isComplete = true;
+            let totalPlaced = 0;
 
-            dropdowns.forEach(dd => {
-                if (!dd.value) isComplete = false;
-                else guessesArr.push(dd.value); 
+            rows.forEach(row => {
+                let range = row.querySelector('.guess-range').value;
+                let c = parseInt(row.querySelector('.guess-chip').value) || 0;
+                
+                if (!range || c <= 0) isComplete = false;
+                else {
+                    if (guessesMap[range]) guessesMap[range] += c; 
+                    else guessesMap[range] = c;
+                    totalPlaced += c;
+                }
             });
 
-            if (!isComplete) { alert("Pilih tebakan untuk SEMUA chip-mu Bos!"); return; }
+            if (!isComplete) { alert("ERROR:\nPastikan SEMUA kotak range sudah dipilih dan jumlah chip minimal 1!"); return; }
+            if (totalPlaced > currentUser.chips) { alert(`ERROR:\nSaldo chip Anda hanya ${currentUser.chips}, tapi Anda mencoba memasang ${totalPlaced} chip!`); return; }
 
-            const guessString = guessesArr.join(','); 
+            let finalGuesses = [];
+            for (let r in guessesMap) {
+                finalGuesses.push(`${r}:${guessesMap[r]}`);
+            }
+            const guessString = finalGuesses.join(','); 
 
             document.getElementById('loading-overlay').style.display = 'flex';
             await fetch(API_URL, {
@@ -371,7 +497,10 @@
             isEditingGuess = false; 
             await fetchDatabase();
             document.getElementById('loading-overlay').style.display = 'none';
-            alert("Tebakan berhasil dikunci ke Database Pusat!");
+            
+            let sisa = currentUser.chips - totalPlaced;
+            if (sisa > 0) alert(`Tebakan disimpan!\n\nInfo: Anda masih punya sisa ${sisa} Chip yang belum dipasang.`);
+            else alert("Mantap! Semua Chip sudah terpasang. Tebakan dikunci!");
         }
 
         // --- ADMIN / THEO ---
@@ -392,14 +521,14 @@
             const btnToggle = document.getElementById('btn-toggle-game');
             if (gameStatus === 'open') {
                 btnToggle.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> Tutup Taruhan';
-                btnToggle.className = "bg-red-600 hover:bg-red-500 text-white text-[10px] font-black px-4 py-2 rounded-lg shadow-lg uppercase transition";
+                btnToggle.className = "bg-red-600 hover:bg-red-500 text-white text-[10px] font-black px-3 py-2 rounded-lg shadow-lg uppercase transition flex-1";
             } else {
                 btnToggle.innerHTML = '<i class="fa-solid fa-lock-open mr-1"></i> Buka Taruhan';
-                btnToggle.className = "bg-green-600 hover:bg-green-500 text-white text-[10px] font-black px-4 py-2 rounded-lg shadow-lg uppercase transition";
+                btnToggle.className = "bg-green-600 hover:bg-green-500 text-white text-[10px] font-black px-3 py-2 rounded-lg shadow-lg uppercase transition flex-1";
             }
 
             usersDB.forEach(u => {
-                if(u.totalpay > 0) {
+                if(u.totalpay > 0 || u.chips > 0) { 
                     const row = document.createElement('div');
                     row.className = "bg-slate-900 border border-slate-700 p-3 rounded-xl flex items-center justify-between";
                     
@@ -407,38 +536,44 @@
                     if (u.guesses) {
                         const arr = u.guesses.toString().split(',');
                         const formatted = arr.map(val => {
-                            const num = parseInt(val);
-                            return `${num.toLocaleString('id-ID')} - ${(num+249).toLocaleString('id-ID')}`;
+                            let parts = val.split(':');
+                            let num = parseInt(parts[0]);
+                            let c = parts[1] ? parseInt(parts[1]) : 1; 
+                            
+                            return `<div class="bg-slate-800 p-1.5 rounded-lg mb-1.5 border border-slate-700 shadow-inner">
+                                        <span class="text-green-400 font-black tracking-tight">${num.toLocaleString('id-ID')} - ${(num+249).toLocaleString('id-ID')}</span><br>
+                                        <span class="text-yellow-500 text-[10px] font-bold"><i class="fa-solid fa-coins"></i> ${c} Chip</span>
+                                    </div>`;
                         });
-                        guessText = formatted.join('<br><span class="text-slate-600">--</span><br>');
+                        guessText = formatted.join('');
                     } else {
-                        guessText = `<span class="text-slate-600 text-[10px] italic">Belum Milih</span>`;
+                        guessText = `<div class="bg-slate-800 p-2 rounded-lg text-slate-500 text-[10px] italic border border-slate-700">Belum Pasang</div>`;
                     }
                     
                     let actionHtml = '';
                     if (u.ispaid) {
                         actionHtml = `<span class="text-green-400 font-black text-xs uppercase block mb-1"><i class="fa-solid fa-check"></i> LUNAS</span>
-                                      <span class="text-[10px] text-slate-400 font-bold bg-slate-800 px-2 py-1 rounded">Tagihan: ${(u.totalpay/1000)}k</span>`;
+                                      <span class="text-[10px] text-slate-400 font-bold bg-slate-800 px-2 py-1 rounded border border-slate-700">Rp ${(u.totalpay/1000)}k</span>`;
                     } else {
-                        actionHtml = `<button onclick="confirmPaymentAdmin('${u.username}', ${u.totalpay})" class="bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow uppercase w-full mb-1 leading-tight">Sahkan<br>Rp ${(u.totalpay/1000)}k</button>`;
+                        actionHtml = `<button onclick="confirmPaymentAdmin('${u.username}', ${u.totalpay})" class="bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow uppercase w-full mb-1 leading-tight border border-amber-500">Sahkan<br>Rp ${(u.totalpay/1000)}k</button>`;
                     }
 
                     row.innerHTML = `
                         <div class="w-1/3 pr-2">
                             <p class="font-bold text-sky-400 text-sm truncate">${u.username}</p>
-                            <p class="text-[11px] text-slate-400 font-bold"><i class="fa-solid fa-coins text-yellow-500"></i> ${u.chips} Chip</p>
+                            <p class="text-[11px] text-slate-400 font-bold mb-1"><i class="fa-solid fa-layer-group text-yellow-500"></i> Beli ${u.chips} Chip</p>
                         </div>
-                        <div class="w-1/3 text-center font-black text-green-400 text-[10px] leading-tight max-h-24 overflow-y-auto">
+                        <div class="w-1/3 text-center text-[10px] leading-tight max-h-32 overflow-y-auto custom-scroll pr-1">
                             ${guessText}
                         </div>
-                        <div class="w-1/3 text-right pl-2">
+                        <div class="w-1/3 text-right pl-3">
                             ${actionHtml}
                         </div>
                     `;
                     tbody.appendChild(row);
                 }
             });
-            if (tbody.innerHTML === '') tbody.innerHTML = '<div class="text-center text-slate-500 text-sm mt-10 font-bold">Belum ada peserta.</div>';
+            if (tbody.innerHTML === '') tbody.innerHTML = '<div class="text-center text-slate-500 text-sm mt-10 font-bold">Belum ada transaksi di ronde ini.</div>';
         }
 
         async function confirmPaymentAdmin(username, total) {
@@ -461,6 +596,39 @@
                 });
                 await fetchDatabase();
                 document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
+
+        async function resetDataNuklir() {
+            const pass = prompt("MASUKKAN KODE NUKLIR UNTUK MERESET RONDE (Ketik Batal untuk keluar):");
+            if (pass === null) return; 
+            
+            if (pass !== "Monica") {
+                alert("⛔ PASSWORD SALAH! Akses Ditolak.");
+                return;
+            }
+
+            if (confirm("⚠️ PERINGATAN TERAKHIR ⚠️\n\nYakin ingin menghapus SEMUA chip, tagihan, dan tebakan peserta? (Nama user tetap aman). Tindakan ini tidak bisa dikembalikan!")) {
+                document.getElementById('loading-overlay').style.display = 'flex';
+                
+                try {
+                    const res = await fetch(API_URL, {
+                        method: 'POST', 
+                        body: JSON.stringify({ action: 'admin_reset', password: pass })
+                    });
+                    
+                    const data = await res.json();
+                    if(data.error) {
+                        alert(data.error);
+                    } else {
+                        await fetchDatabase();
+                        alert("💥 BOOM! 💥\n\nSemua data taruhan berhasil dikosongkan. Ronde baru siap dimulai!");
+                    }
+                } catch (err) {
+                    alert("Gagal mereset: " + err);
+                } finally {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                }
             }
         }
     </script>
