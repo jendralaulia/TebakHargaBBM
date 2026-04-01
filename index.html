@@ -104,16 +104,16 @@
                 </div>
 
                 <div id="active-game-area" class="space-y-4">
+                    
                     <div class="bg-slate-800 border border-slate-600 rounded-2xl p-5 shadow-lg relative overflow-hidden">
                         <div class="absolute top-0 right-0 bg-slate-700 text-[10px] px-3 py-1 rounded-bl-lg text-slate-300 font-bold uppercase">Pilih Range</div>
-                        <h3 class="text-green-400 font-black mb-3"><i class="fa-solid fa-crosshairs"></i> TARGET KENAIKAN BBM</h3>
+                        <h3 class="text-green-400 font-black mb-1"><i class="fa-solid fa-crosshairs"></i> TARGET KENAIKAN BBM</h3>
+                        <p class="text-[10px] text-slate-400 mb-3 font-bold border-b border-slate-700 pb-2">Hak Tebakan Anda: <span id="label-jml-tebakan" class="text-yellow-400 text-xs">0</span></p>
                         
-                        <div class="mb-3">
-                            <select id="input-guess" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-green-400 font-black text-lg focus:border-green-500 outline-none appearance-none text-center cursor-pointer">
-                                <option value="">-- Sentuh Untuk Memilih Range --</option>
-                                </select>
-                        </div>
-                        <button onclick="submitGuess()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl transition text-sm shadow-lg">SIMPAN / UBAH TEBAKAN</button>
+                        <div id="guess-container" class="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
+                            </div>
+                        
+                        <button onclick="submitGuess()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl transition text-sm shadow-lg">SIMPAN / UBAH SEMUA TEBAKAN</button>
                     </div>
 
                     <div class="bg-slate-800 border border-slate-600 rounded-2xl p-5 shadow-lg">
@@ -161,25 +161,17 @@
         let usersDB = [];
         let gameStatus = 'open';
         let currentUser = null;
-        let isEditingGuess = false; // Penjaga agar dropdown tidak refresh saat user lagi milih
+        let isEditingGuess = false; 
 
-        // 1. GENERATOR RANGE 250 (IDE BOS THEO)
-        function generateRangeOptions() {
-            const selectEl = document.getElementById('input-guess');
-            // Bikin dari 10.001 s.d 25.000 dengan rentang 250
+        // GENERATOR RANGE HTML UNTUK DROPDOWN
+        function getRangeOptionsHTML() {
+            let html = '<option value="">-- Pilih Range Harga --</option>';
             for (let i = 10001; i <= 25000; i += 250) {
                 const upper = i + 249;
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.text = `${i.toLocaleString('id-ID')} - ${upper.toLocaleString('id-ID')}`;
-                selectEl.appendChild(opt);
+                html += `<option value="${i}">${i.toLocaleString('id-ID')} - ${upper.toLocaleString('id-ID')}</option>`;
             }
+            return html;
         }
-        generateRangeOptions(); // Jalankan saat web dibuka
-
-        // Mencegah dropdown nge-refresh saat user lagi gulir pilihan
-        document.getElementById('input-guess').addEventListener('change', () => isEditingGuess = true);
-
 
         async function fetchDatabase(showLoading = false) {
             if(showLoading) document.getElementById('loading-overlay').style.display = 'flex';
@@ -270,7 +262,7 @@
             if (user.password !== password) { alert("Salah sandi Ikan Bos!"); return; }
             
             currentUser = user;
-            isEditingGuess = false; // Reset penjaga dropdown
+            isEditingGuess = false; 
             refreshUserDashboard();
             showScreen('screen-user-dashboard');
         }
@@ -279,10 +271,29 @@
             document.getElementById('dash-username').innerText = currentUser.username;
             document.getElementById('dash-chips').innerText = currentUser.chips;
             document.getElementById('dash-bill').innerText = currentUser.totalpay.toLocaleString('id-ID'); 
+            document.getElementById('label-jml-tebakan').innerText = currentUser.chips;
             
-            // Set value dropdown ke nilai DB, HANYA JIKA user sedang tidak mengedit
-            if(currentUser.guess !== null && !isEditingGuess) {
-                document.getElementById('input-guess').value = currentUser.guess;
+            // GENERATE DROPDOWN SESUAI JUMLAH CHIP
+            const container = document.getElementById('guess-container');
+            
+            if (!isEditingGuess) {
+                container.innerHTML = ''; // Kosongkan dulu
+                let savedGuesses = [];
+                if (currentUser.guess) savedGuesses = currentUser.guess.split(','); // Pecah data dari DB
+
+                if (currentUser.chips === 0) {
+                    container.innerHTML = '<p class="text-xs text-slate-500 text-center italic py-2">Beli chip di bawah untuk mulai menebak.</p>';
+                } else {
+                    for (let i = 0; i < currentUser.chips; i++) {
+                        const select = document.createElement('select');
+                        select.className = "guess-dropdown w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-2.5 text-green-400 font-bold text-sm focus:border-green-500 outline-none appearance-none cursor-pointer";
+                        select.innerHTML = getRangeOptionsHTML();
+                        if (savedGuesses[i]) select.value = savedGuesses[i]; // Masukkan angka yang disave sebelumnya
+                        
+                        select.addEventListener('change', () => isEditingGuess = true);
+                        container.appendChild(select);
+                    }
+                }
             }
 
             if(currentUser.totalpay > 0 && !currentUser.ispaid) {
@@ -324,112 +335,24 @@
                 });
                 
                 document.getElementById('input-chips').value = '';
+                isEditingGuess = false; // Biar dropdown langsung ke-refresh tambah banyak
                 await fetchDatabase(); 
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
 
         async function submitGuess() {
-            const guess = parseInt(document.getElementById('input-guess').value);
-            if (isNaN(guess) || guess <= 0) { alert("Pilih Range Harga Dulu!"); return; }
             if (currentUser.chips <= 0) { alert("Beli chip dulu dong Bos!"); return; }
 
-            document.getElementById('loading-overlay').style.display = 'flex';
-            await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ 
-                    action: 'update_user', username: currentUser.username, 
-                    chips: currentUser.chips, totalPay: currentUser.totalpay, 
-                    guess: guess, isPaid: currentUser.ispaid 
-                })
+            const dropdowns = document.querySelectorAll('.guess-dropdown');
+            let guesses = [];
+            let isComplete = true;
+
+            dropdowns.forEach(dd => {
+                if (!dd.value) isComplete = false;
+                else guesses.push(dd.value); // Tampung semua tebakan
             });
-            isEditingGuess = false; // Kunci kembali dropdown agar sinkron dengan DB
-            await fetchDatabase();
-            document.getElementById('loading-overlay').style.display = 'none';
-            alert("Tebakan dikunci ke Database Pusat!");
-        }
 
-        // --- ADMIN / THEO ---
-        function loginAdmin() {
-            const user = document.getElementById('admin-username').value;
-            const pass = document.getElementById('admin-password').value;
-            if (user === "Theo" && pass === "Monica") {
-                currentUser = { username: 'Theo' };
-                refreshAdminDashboard();
-                showScreen('screen-admin-dashboard');
-            } else { alert("Akses Ditolak!"); }
-        }
+            if (!isComplete) { alert("Pilih tebakan untuk SEMUA chip-mu Bos!"); return; }
 
-        function refreshAdminDashboard() {
-            const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = '';
-            
-            const btnToggle = document.getElementById('btn-toggle-game');
-            if (gameStatus === 'open') {
-                btnToggle.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> Tutup Taruhan';
-                btnToggle.className = "bg-red-600 hover:bg-red-500 text-white text-[10px] font-black px-4 py-2 rounded-lg shadow-lg uppercase transition";
-            } else {
-                btnToggle.innerHTML = '<i class="fa-solid fa-lock-open mr-1"></i> Buka Taruhan';
-                btnToggle.className = "bg-green-600 hover:bg-green-500 text-white text-[10px] font-black px-4 py-2 rounded-lg shadow-lg uppercase transition";
-            }
-
-            usersDB.forEach(u => {
-                if(u.totalpay > 0) {
-                    const row = document.createElement('div');
-                    row.className = "bg-slate-900 border border-slate-700 p-3 rounded-xl flex items-center justify-between";
-                    
-                    // FORMAT 250 UNTUK TAMPILAN THEO
-                    const upperBounds = u.guess ? u.guess + 249 : 0;
-                    const guessText = u.guess !== null ? `${u.guess.toLocaleString('id-ID')} - <br>${upperBounds.toLocaleString('id-ID')}` : `<span class="text-slate-600 text-[10px] italic">Belum Milih</span>`;
-                    
-                    let actionHtml = '';
-                    if (u.ispaid) {
-                        actionHtml = `<span class="text-green-400 font-black text-xs uppercase block mb-1"><i class="fa-solid fa-check"></i> LUNAS</span>
-                                      <span class="text-[10px] text-slate-400 font-bold bg-slate-800 px-2 py-1 rounded">Tagihan: ${(u.totalpay/1000)}k</span>`;
-                    } else {
-                        actionHtml = `<button onclick="confirmPaymentAdmin('${u.username}', ${u.totalpay})" class="bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow uppercase w-full mb-1 leading-tight">Sahkan<br>Rp ${(u.totalpay/1000)}k</button>`;
-                    }
-
-                    row.innerHTML = `
-                        <div class="w-1/3 pr-2">
-                            <p class="font-bold text-sky-400 text-sm truncate">${u.username}</p>
-                            <p class="text-[11px] text-slate-400 font-bold"><i class="fa-solid fa-coins text-yellow-500"></i> ${u.chips} Chip</p>
-                        </div>
-                        <div class="w-1/3 text-center font-black text-green-400 text-[11px] leading-tight">
-                            ${guessText}
-                        </div>
-                        <div class="w-1/3 text-right">
-                            ${actionHtml}
-                        </div>
-                    `;
-                    tbody.appendChild(row);
-                }
-            });
-            if (tbody.innerHTML === '') tbody.innerHTML = '<div class="text-center text-slate-500 text-sm mt-10 font-bold">Belum ada peserta.</div>';
-        }
-
-        async function confirmPaymentAdmin(username, total) {
-            if(confirm(`Konfirmasi pembayaran Rp ${total.toLocaleString('id-ID')} dari ${username} sudah LUNAS di rekening?`)) {
-                document.getElementById('loading-overlay').style.display = 'flex';
-                await fetch(API_URL, {
-                    method: 'POST', body: JSON.stringify({ action: 'admin_confirm', username })
-                });
-                await fetchDatabase();
-                document.getElementById('loading-overlay').style.display = 'none';
-            }
-        }
-
-        async function toggleGame() {
-            const newStatus = gameStatus === 'open' ? 'closed' : 'open';
-            if(confirm(newStatus === 'closed' ? "Yakin ingin MENUTUP TARUHAN? Peserta tidak bisa ganti angka lagi!" : "Yakin BUKA KEMBALI taruhan?")) {
-                document.getElementById('loading-overlay').style.display = 'flex';
-                await fetch(API_URL, {
-                    method: 'POST', body: JSON.stringify({ action: 'admin_toggle', status: newStatus })
-                });
-                await fetchDatabase();
-                document.getElementById('loading-overlay').style.display = 'none';
-            }
-        }
-    </script>
-</body>
-</html>
+            const guessString = guesses.join(','); // Jadikan string berderet kom
