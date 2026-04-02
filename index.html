@@ -210,7 +210,8 @@
             </div>
 
             <div id="screen-admin-dashboard" class="hidden flex-col flex-grow h-full">
-                <div class="flex justify-between items-center mb-4 bg-slate-900 p-3 rounded-xl border border-amber-900/50">
+                
+                <div class="flex justify-between items-center mb-3 bg-slate-900 p-3 rounded-xl border border-amber-900/50">
                     <span class="font-black text-amber-500"><i class="fa-solid fa-user-tie"></i> BANDAR</span>
                     <div class="flex space-x-2">
                         <button id="btn-toggle-game" onclick="toggleGame()" class="bg-red-600 hover:bg-red-500 text-white text-[10px] font-black px-3 py-2 rounded-lg shadow-lg uppercase transition">
@@ -222,7 +223,12 @@
                     </div>
                 </div>
 
-                <div class="bg-slate-800 border border-slate-600 rounded-2xl flex-grow flex flex-col mb-2 overflow-hidden">
+                <div class="flex space-x-2 mb-3">
+                    <button onclick="switchAdminTab('transaksi')" id="tab-transaksi" class="flex-1 bg-amber-600 text-white text-[10px] font-black py-2.5 rounded-lg shadow transition uppercase tracking-wider border border-amber-500">TRANSAKSI</button>
+                    <button onclick="switchAdminTab('progress')" id="tab-progress" class="flex-1 bg-slate-800 text-slate-400 hover:text-white text-[10px] font-black py-2.5 rounded-lg shadow transition uppercase tracking-wider border border-slate-700">PANTAU PEMAIN</button>
+                </div>
+
+                <div id="view-transaksi" class="bg-slate-800 border border-slate-600 rounded-2xl flex-grow flex flex-col mb-2 overflow-hidden">
                     <div class="p-3 bg-slate-900 border-b border-slate-700 flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
                         <span class="w-1/3">Pemain</span>
                         <span class="w-1/3 text-center">Tebakan</span>
@@ -230,6 +236,17 @@
                     </div>
                     <div id="admin-table-body" class="overflow-y-auto custom-scroll p-2 space-y-2 flex-grow"></div>
                 </div>
+
+                <div id="view-progress" class="hidden bg-slate-800 border border-slate-600 rounded-2xl flex-grow flex flex-col mb-2 overflow-hidden">
+                    <div class="p-3 bg-slate-900 border-b border-slate-700 flex text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
+                        <span class="w-1/4 text-left pl-1">Nama</span>
+                        <span class="w-1/4">Daftar</span>
+                        <span class="w-1/4">Beli Chip</span>
+                        <span class="w-1/4">Pasang</span>
+                    </div>
+                    <div id="admin-progress-body" class="overflow-y-auto custom-scroll p-2 space-y-2 flex-grow"></div>
+                </div>
+
             </div>
 
         </div>
@@ -255,12 +272,31 @@
         
         document.getElementById('new-guess-range').innerHTML = getRangeOptionsHTML();
 
-        // 🟢 FUNGSI BARU: PLAY MUSIK OTOMATIS SETELAH KLIK
+        // FUNGSI PLAY MUSIK OTOMATIS SAAT TOMBOL DIKLIK
         function mulaiAplikasi() {
             const musik = document.getElementById('musik-tongkrongan');
-            musik.volume = 0.4; // 40% volume biar enak di telinga
+            musik.volume = 0.4; // 40% volume biar santai
             musik.play().catch(err => console.log("Musik diblokir browser:", err));
             showScreen('screen-home');
+        }
+
+        // FUNGSI GANTI TAB BANDAR
+        function switchAdminTab(tab) {
+            if(tab === 'transaksi') {
+                document.getElementById('view-transaksi').classList.remove('hidden');
+                document.getElementById('view-transaksi').classList.add('flex');
+                document.getElementById('view-progress').classList.add('hidden');
+                document.getElementById('view-progress').classList.remove('flex');
+                document.getElementById('tab-transaksi').className = "flex-1 bg-amber-600 text-white text-[10px] font-black py-2.5 rounded-lg shadow transition uppercase tracking-wider border border-amber-500";
+                document.getElementById('tab-progress').className = "flex-1 bg-slate-800 text-slate-400 hover:text-white text-[10px] font-black py-2.5 rounded-lg shadow transition uppercase tracking-wider border border-slate-700";
+            } else {
+                document.getElementById('view-progress').classList.remove('hidden');
+                document.getElementById('view-progress').classList.add('flex');
+                document.getElementById('view-transaksi').classList.add('hidden');
+                document.getElementById('view-transaksi').classList.remove('flex');
+                document.getElementById('tab-progress').className = "flex-1 bg-amber-600 text-white text-[10px] font-black py-2.5 rounded-lg shadow transition uppercase tracking-wider border border-amber-500";
+                document.getElementById('tab-transaksi').className = "flex-1 bg-slate-800 text-slate-400 hover:text-white text-[10px] font-black py-2.5 rounded-lg shadow transition uppercase tracking-wider border border-slate-700";
+            }
         }
 
         function renderGuessCart() {
@@ -329,7 +365,6 @@
             currentGuessesCart.splice(index, 1);
             renderGuessCart();
         }
-
 
         async function fetchDatabase(showLoading = false) {
             if(showLoading) document.getElementById('loading-overlay').style.display = 'flex';
@@ -543,6 +578,9 @@
         }
 
         function refreshAdminDashboard() {
+            // ==========================================
+            // RENDER VIEW 1: TRANSAKSI CHIP & TEBAKAN
+            // ==========================================
             const tbody = document.getElementById('admin-table-body');
             tbody.innerHTML = '';
             
@@ -555,10 +593,12 @@
                 btnToggle.className = "bg-green-600 hover:bg-green-500 text-white text-[10px] font-black px-3 py-2 rounded-lg shadow-lg uppercase transition flex-1";
             }
 
+            let adaTransaksi = false;
             usersDB.forEach(u => {
                 if(u.chips > 0 || u.pending_chips > 0) { 
+                    adaTransaksi = true;
                     const row = document.createElement('div');
-                    row.className = "bg-slate-900 border border-slate-700 p-3 rounded-xl flex items-center justify-between";
+                    row.className = "bg-slate-900 border border-slate-700 p-3 rounded-xl flex items-center justify-between shadow-sm mb-2 fade-in";
                     
                     let guessText = '';
                     if (u.guesses) {
@@ -601,7 +641,40 @@
                     tbody.appendChild(row);
                 }
             });
-            if (tbody.innerHTML === '') tbody.innerHTML = '<div class="text-center text-slate-500 text-sm mt-10 font-bold">Belum ada transaksi di ronde ini.</div>';
+            if (!adaTransaksi) tbody.innerHTML = '<div class="text-center text-slate-500 text-sm mt-10 font-bold">Belum ada transaksi chip di ronde ini.</div>';
+
+
+            // ==========================================
+            // RENDER VIEW 2: PROGRESS PEMAIN (CCTV THEO)
+            // ==========================================
+            const pBody = document.getElementById('admin-progress-body');
+            pBody.innerHTML = '';
+            
+            let adaPeserta = false;
+            usersDB.forEach(u => {
+                // Sembunyikan Theo dari list pantauan, karena dia bosnya
+                if (u.username === 'Theo') return;
+                
+                adaPeserta = true;
+                let hasDaftar = true; // Selalu true kalau masuk loop ini
+                let hasBeli = (u.chips > 0 || u.pending_chips > 0 || u.unpaid_bill > 0 || u.totalpay > 0);
+                let hasPasang = (u.guesses && u.guesses.trim() !== "");
+
+                const tickHTML = `<i class="fa-solid fa-circle-check text-green-400 text-lg drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]"></i>`;
+                const crossHTML = `<i class="fa-solid fa-minus text-slate-600 text-sm"></i>`;
+
+                const row = document.createElement('div');
+                row.className = "bg-slate-900 border border-slate-700 p-2 rounded-xl flex items-center text-center shadow-sm mb-1.5 fade-in";
+                row.innerHTML = `
+                    <div class="w-1/4 text-left pl-2 font-black text-sky-400 text-xs truncate">${u.username}</div>
+                    <div class="w-1/4">${hasDaftar ? tickHTML : crossHTML}</div>
+                    <div class="w-1/4">${hasBeli ? tickHTML : crossHTML}</div>
+                    <div class="w-1/4">${hasPasang ? tickHTML : crossHTML}</div>
+                `;
+                pBody.appendChild(row);
+            });
+
+            if (!adaPeserta) pBody.innerHTML = '<div class="text-center text-slate-500 text-sm mt-10 font-bold">Belum ada peserta yang mendaftar.</div>';
         }
 
         async function confirmPaymentAdmin(username) {
