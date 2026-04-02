@@ -15,13 +15,9 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         #loading-overlay { z-index: 100; backdrop-filter: blur(5px); }
-        
-        /* Custom scrollbar */
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-        
-        /* Centering text in select dropdowns on mobile */
         select.center-select { text-align: center; text-align-last: center; }
     </style>
 </head>
@@ -53,13 +49,10 @@
                 </h2>
                 
                 <div class="bg-slate-800/60 backdrop-blur-md border-t border-l border-slate-600/50 border-b-2 border-r-2 border-slate-900 rounded-2xl p-5 shadow-[inset_0_2px_4px_rgba(255,255,255,0.1),_0_8px_16px_rgba(0,0,0,0.5)] flex-grow overflow-y-auto custom-scroll mb-6 space-y-4 relative overflow-hidden">
-                    
                     <div class="absolute -top-10 -right-10 w-32 h-32 bg-sky-500 rounded-full mix-blend-multiply filter blur-2xl opacity-20"></div>
-                    
                     <p class="text-[13px] text-slate-200 font-bold leading-relaxed border-b border-slate-700/50 pb-3 relative z-10">
                         Selamat datang di Arena Toto BBM! Sebelum bertaruh, pahami aturan tongkrongan ini:
                     </p>
-                    
                     <ul class="space-y-4 relative z-10 mt-2">
                         <li class="flex items-start">
                             <div class="w-6 h-6 rounded-full bg-slate-900 border border-sky-500/50 flex items-center justify-center text-sky-400 font-black text-xs mr-3 flex-shrink-0 shadow-[0_0_10px_rgba(14,165,233,0.3)]">1</div>
@@ -79,7 +72,6 @@
                         </li>
                     </ul>
                 </div>
-
                 <button onclick="mulaiAplikasi()" class="relative w-full bg-gradient-to-b from-green-500 to-green-700 text-white font-black py-4 rounded-xl shadow-[0_5px_0_#166534,0_10px_15px_rgba(0,0,0,0.4)] active:shadow-[0_0_0_#166534,0_0_0_rgba(0,0,0,0)] active:translate-y-[5px] transition-all text-sm tracking-widest border border-green-400/50 group">
                     <span class="flex justify-center items-center">
                         SAYA MENGERTI & LANJUT MAIN <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
@@ -90,53 +82,74 @@
             <div id="screen-home" class="hidden flex-col flex-grow justify-center space-y-4">
                 <button onclick="showScreen('screen-register')" class="bg-sky-600 hover:bg-sky-500 text-white font-black py-4 px-6 rounded-2xl shadow-lg transition transform hover:-translate-y-1 text-lg border border-sky-400"><i class="fa-solid fa-user-plus mr-2"></i> IKUT MAIN (DAFTAR)</button>
                 <button onclick="showScreen('screen-login')" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-2xl transition border border-slate-500"><i class="fa-solid fa-right-to-bracket mr-2"></i> MASUK USER</button>
+                
+                <button onclick="showScreen('screen-public-progress')" class="bg-indigo-900/40 hover:bg-indigo-800/60 text-indigo-300 font-bold py-3 px-6 rounded-2xl transition border border-indigo-700/50 mt-2 shadow-[0_0_15px_rgba(67,56,202,0.3)]">
+                    <i class="fa-solid fa-users-viewfinder mr-2"></i> PANTAU PEMAIN (LIVE)
+                </button>
+
                 <div class="my-2 text-center text-slate-500 text-sm font-bold border-b border-slate-700 pb-4"></div>
                 <button onclick="showScreen('screen-admin-login')" class="bg-slate-900 hover:bg-black text-amber-500 font-bold py-3 px-6 rounded-2xl transition border border-amber-900"><i class="fa-solid fa-user-tie mr-2"></i> Ruang Bandar (Theo)</button>
-                <button onclick="showScreen('screen-landing')" class="text-slate-500 text-xs mt-4 hover:text-white font-bold text-center"><i class="fa-solid fa-circle-question mr-1"></i> Baca Aturan Main</button>
+                <button onclick="showScreen('screen-landing')" class="text-slate-500 text-xs mt-2 hover:text-white font-bold text-center"><i class="fa-solid fa-circle-question mr-1"></i> Baca Aturan Main</button>
+            </div>
+
+            <div id="screen-public-progress" class="hidden flex-col flex-grow">
+                <h2 class="text-xl font-black text-indigo-400 mb-4 text-center tracking-widest"><i class="fa-solid fa-satellite-dish animate-pulse mr-2"></i> PUSAT PANTAUAN</h2>
+                <p class="text-center text-xs text-slate-400 mb-3 italic">Pantau pergerakan para suhu secara real-time</p>
+                
+                <div class="bg-slate-800 border border-slate-600 rounded-2xl flex-grow flex flex-col mb-4 overflow-hidden shadow-[0_0_20px_rgba(67,56,202,0.2)]">
+                    <div class="p-3 bg-slate-900 border-b border-slate-700 flex text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
+                        <span class="w-1/4 text-left pl-1">Nama</span>
+                        <span class="w-1/4">Daftar</span>
+                        <span class="w-1/4">Beli Chip</span>
+                        <span class="w-1/4">Pasang</span>
+                    </div>
+                    <div id="public-progress-body" class="overflow-y-auto custom-scroll p-2 space-y-2 flex-grow">
+                        </div>
+                </div>
+                <button onclick="showScreen('screen-home')" class="w-full text-slate-500 text-sm hover:text-white font-bold">Kembali ke Menu</button>
             </div>
 
             <div id="screen-register" class="hidden flex-col flex-grow">
                 <h2 class="text-xl font-black text-sky-400 mb-2 text-center">DAFTAR PESERTA BARU</h2>
                 <div class="bg-slate-800/50 p-5 rounded-2xl border border-slate-700 space-y-4">
-                    <input type="text" id="reg-username" placeholder="Buat Username (Cth: Aulia)" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 font-bold text-center">
-                    <select id="reg-password" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 font-bold appearance-none center-select cursor-pointer">
+                    <input type="text" id="reg-username" oninput="checkRegReady()" placeholder="Buat Username (Cth: Aulia)" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 font-bold text-center">
+                    <select id="reg-password" onchange="checkRegReady()" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 font-bold appearance-none center-select cursor-pointer">
                         <option value="">-- Pilih Sandi Ikan --</option>
                         <option value="Hiu">Hiu</option><option value="Lele">Lele</option><option value="Gurame">Gurame</option>
                         <option value="Nila">Nila</option><option value="Tongkol">Tongkol</option><option value="Mas">Mas</option>
                         <option value="Koi">Koi</option><option value="Kakap">Kakap</option><option value="Bandeng">Bandeng</option><option value="Teri">Teri</option>
                     </select>
                 </div>
-                <button onclick="registerUser()" class="w-full bg-sky-600 text-white font-black py-3 rounded-xl mt-6 hover:bg-sky-500 transition">DAFTAR SEKARANG</button>
+                <button id="btn-reg-submit" onclick="registerUser()" disabled class="w-full bg-slate-700 text-slate-500 font-black py-3 rounded-xl mt-6 transition duration-300 opacity-50 cursor-not-allowed pointer-events-none">DAFTAR SEKARANG</button>
                 <button onclick="showScreen('screen-home')" class="w-full text-slate-500 text-sm mt-4 hover:text-white">Kembali</button>
             </div>
 
             <div id="screen-login" class="hidden flex-col flex-grow justify-center">
                 <h2 class="text-xl font-black text-sky-400 mb-4 text-center">MASUK AKUN</h2>
                 <div class="bg-slate-800/50 p-5 rounded-2xl border border-slate-700 space-y-4">
-                    <input type="text" id="login-username" placeholder="Username" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 font-bold text-center">
-                    <select id="login-password" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 font-bold appearance-none center-select cursor-pointer">
+                    <input type="text" id="login-username" oninput="checkLoginReady()" placeholder="Username" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 font-bold text-center">
+                    <select id="login-password" onchange="checkLoginReady()" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 font-bold appearance-none center-select cursor-pointer">
                         <option value="">-- Password Ikan --</option>
                         <option value="Hiu">Hiu</option><option value="Lele">Lele</option><option value="Gurame">Gurame</option>
                         <option value="Nila">Nila</option><option value="Tongkol">Tongkol</option><option value="Mas">Mas</option>
                         <option value="Koi">Koi</option><option value="Kakap">Kakap</option><option value="Bandeng">Bandeng</option><option value="Teri">Teri</option>
                     </select>
                 </div>
-                <button onclick="loginUser()" class="w-full bg-slate-600 text-white font-black py-3 rounded-xl mt-6 hover:bg-slate-500 transition">MASUK</button>
+                <button id="btn-login-submit" onclick="loginUser()" disabled class="w-full bg-slate-700 text-slate-500 font-black py-3 rounded-xl mt-6 transition duration-300 opacity-50 cursor-not-allowed pointer-events-none">MASUK</button>
                 <button onclick="showScreen('screen-home')" class="w-full text-slate-500 text-sm mt-4 hover:text-white">Kembali</button>
             </div>
 
             <div id="screen-admin-login" class="hidden flex-col flex-grow justify-center">
                 <h2 class="text-xl font-black text-amber-500 mb-4 text-center"><i class="fa-solid fa-lock"></i> RUANG BANDAR</h2>
                 <div class="bg-slate-800/50 p-5 rounded-2xl border border-amber-900/50 space-y-4">
-                    <input type="text" id="admin-username" placeholder="Username" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-amber-500 font-bold focus:outline-none text-center">
-                    <input type="password" id="admin-password" placeholder="Password" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-amber-500 font-bold focus:outline-none text-center">
+                    <input type="text" id="admin-username" oninput="checkAdminReady()" placeholder="Username" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-amber-500 font-bold focus:outline-none text-center">
+                    <input type="password" id="admin-password" oninput="checkAdminReady()" placeholder="Password" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-amber-500 font-bold focus:outline-none text-center">
                 </div>
-                <button onclick="loginAdmin()" class="w-full bg-amber-600 text-white font-black py-3 rounded-xl mt-6 hover:bg-amber-500 transition">BUKA BRANKAS</button>
+                <button id="btn-admin-submit" onclick="loginAdmin()" disabled class="w-full bg-slate-800 text-slate-600 font-black py-3 rounded-xl mt-6 transition duration-300 opacity-50 cursor-not-allowed pointer-events-none">BUKA BRANKAS</button>
                 <button onclick="showScreen('screen-home')" class="w-full text-slate-500 text-sm mt-4 hover:text-white">Kembali</button>
             </div>
 
             <div id="screen-user-dashboard" class="hidden flex-col flex-grow">
-                
                 <div class="flex flex-col mb-4 bg-slate-800 p-3 rounded-xl border border-slate-700 shadow relative">
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-slate-400">Pemain: <span id="dash-username" class="font-bold text-sky-400 text-lg">Nama</span></span>
@@ -157,14 +170,12 @@
                 </div>
 
                 <div id="active-game-area" class="space-y-4">
-                    
                     <div class="bg-slate-800 border border-slate-600 rounded-2xl p-5 shadow-lg relative flex flex-col">
                         <div class="absolute top-0 right-0 bg-slate-700 text-[10px] px-3 py-1 rounded-bl-lg text-slate-300 font-bold uppercase">Portofolio</div>
                         <h3 class="text-green-400 font-black mb-4"><i class="fa-solid fa-crosshairs"></i> TARGET KENAIKAN BBM</h3>
                         
                         <div class="flex flex-col space-y-2 mb-4">
-                            <select id="new-guess-range" class="w-full bg-[#0f172a] border border-slate-600 rounded-xl px-4 py-3 text-green-400 font-black text-lg focus:border-green-500 outline-none appearance-none cursor-pointer center-select shadow-inner">
-                            </select>
+                            <select id="new-guess-range" class="w-full bg-[#0f172a] border border-slate-600 rounded-xl px-4 py-3 text-green-400 font-black text-lg focus:border-green-500 outline-none appearance-none cursor-pointer center-select shadow-inner"></select>
                             
                             <div class="flex justify-between space-x-2">
                                 <div class="flex items-center space-x-2 bg-[#0f172a] border border-slate-600 rounded-xl px-4 py-2 w-1/2 shadow-inner">
@@ -182,8 +193,7 @@
                             <span>Sisa Chip Aktif: <span id="unallocated-chips" class="text-yellow-400 font-black text-sm ml-1">0</span></span>
                         </div>
                         
-                        <div id="guesses-cart" class="space-y-2 mb-4 max-h-40 overflow-y-auto custom-scroll pr-1">
-                        </div>
+                        <div id="guesses-cart" class="space-y-2 mb-4 max-h-40 overflow-y-auto custom-scroll pr-1"></div>
                         
                         <button onclick="submitGuess()" class="w-full bg-[#16a34a] hover:bg-[#15803d] text-white font-black py-3 rounded-xl transition text-sm shadow-lg tracking-widest border border-green-500">
                             SIMPAN TEBAKAN <i class="fa-solid fa-cloud-arrow-up ml-1"></i>
@@ -210,7 +220,6 @@
             </div>
 
             <div id="screen-admin-dashboard" class="hidden flex-col flex-grow h-full">
-                
                 <div class="flex justify-between items-center mb-3 bg-slate-900 p-3 rounded-xl border border-amber-900/50">
                     <span class="font-black text-amber-500"><i class="fa-solid fa-user-tie"></i> BANDAR</span>
                     <div class="flex space-x-2">
@@ -246,7 +255,6 @@
                     </div>
                     <div id="admin-progress-body" class="overflow-y-auto custom-scroll p-2 space-y-2 flex-grow"></div>
                 </div>
-
             </div>
 
         </div>
@@ -258,7 +266,6 @@
         let gameStatus = 'open';
         let currentUser = null;
         let isEditingGuess = false; 
-        
         let currentGuessesCart = []; 
 
         function getRangeOptionsHTML() {
@@ -272,28 +279,63 @@
         
         document.getElementById('new-guess-range').innerHTML = getRangeOptionsHTML();
 
-        // FUNGSI PLAY MUSIK OTOMATIS SAAT TOMBOL DIKLIK
+        // LOGIKA TOMBOL NYALA OTOMATIS (REGISTER, LOGIN, ADMIN)
+        function checkRegReady() {
+            const u = document.getElementById('reg-username').value.trim();
+            const p = document.getElementById('reg-password').value;
+            const btn = document.getElementById('btn-reg-submit');
+            if(u && p) {
+                btn.className = "w-full bg-sky-600 hover:bg-sky-500 text-white font-black py-3 rounded-xl mt-6 transition duration-300 shadow-[0_0_15px_rgba(2,132,199,0.4)]";
+                btn.removeAttribute('disabled');
+            } else {
+                btn.className = "w-full bg-slate-700 text-slate-500 font-black py-3 rounded-xl mt-6 transition duration-300 opacity-50 cursor-not-allowed pointer-events-none";
+                btn.setAttribute('disabled', 'true');
+            }
+        }
+
+        function checkLoginReady() {
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value;
+            const btn = document.getElementById('btn-login-submit');
+            if(u && p) {
+                btn.className = "w-full bg-sky-600 hover:bg-sky-500 text-white font-black py-3 rounded-xl mt-6 transition duration-300 shadow-[0_0_15px_rgba(2,132,199,0.4)]";
+                btn.removeAttribute('disabled');
+            } else {
+                btn.className = "w-full bg-slate-700 text-slate-500 font-black py-3 rounded-xl mt-6 transition duration-300 opacity-50 cursor-not-allowed pointer-events-none";
+                btn.setAttribute('disabled', 'true');
+            }
+        }
+
+        function checkAdminReady() {
+            const u = document.getElementById('admin-username').value.trim();
+            const p = document.getElementById('admin-password').value;
+            const btn = document.getElementById('btn-admin-submit');
+            if(u && p) {
+                btn.className = "w-full bg-amber-600 hover:bg-amber-500 text-white font-black py-3 rounded-xl mt-6 transition duration-300 shadow-[0_0_15px_rgba(217,119,6,0.4)]";
+                btn.removeAttribute('disabled');
+            } else {
+                btn.className = "w-full bg-slate-800 text-slate-600 font-black py-3 rounded-xl mt-6 transition duration-300 opacity-50 cursor-not-allowed pointer-events-none";
+                btn.setAttribute('disabled', 'true');
+            }
+        }
+
+        // PLAY MUSIK 
         function mulaiAplikasi() {
             const musik = document.getElementById('musik-tongkrongan');
-            musik.volume = 0.4; // 40% volume biar santai
+            musik.volume = 0.4; 
             musik.play().catch(err => console.log("Musik diblokir browser:", err));
             showScreen('screen-home');
         }
 
-        // FUNGSI GANTI TAB BANDAR
         function switchAdminTab(tab) {
             if(tab === 'transaksi') {
-                document.getElementById('view-transaksi').classList.remove('hidden');
-                document.getElementById('view-transaksi').classList.add('flex');
-                document.getElementById('view-progress').classList.add('hidden');
-                document.getElementById('view-progress').classList.remove('flex');
+                document.getElementById('view-transaksi').classList.remove('hidden'); document.getElementById('view-transaksi').classList.add('flex');
+                document.getElementById('view-progress').classList.add('hidden'); document.getElementById('view-progress').classList.remove('flex');
                 document.getElementById('tab-transaksi').className = "flex-1 bg-amber-600 text-white text-[10px] font-black py-2.5 rounded-lg shadow transition uppercase tracking-wider border border-amber-500";
                 document.getElementById('tab-progress').className = "flex-1 bg-slate-800 text-slate-400 hover:text-white text-[10px] font-black py-2.5 rounded-lg shadow transition uppercase tracking-wider border border-slate-700";
             } else {
-                document.getElementById('view-progress').classList.remove('hidden');
-                document.getElementById('view-progress').classList.add('flex');
-                document.getElementById('view-transaksi').classList.add('hidden');
-                document.getElementById('view-transaksi').classList.remove('flex');
+                document.getElementById('view-progress').classList.remove('hidden'); document.getElementById('view-progress').classList.add('flex');
+                document.getElementById('view-transaksi').classList.add('hidden'); document.getElementById('view-transaksi').classList.remove('flex');
                 document.getElementById('tab-progress').className = "flex-1 bg-amber-600 text-white text-[10px] font-black py-2.5 rounded-lg shadow transition uppercase tracking-wider border border-amber-500";
                 document.getElementById('tab-transaksi').className = "flex-1 bg-slate-800 text-slate-400 hover:text-white text-[10px] font-black py-2.5 rounded-lg shadow transition uppercase tracking-wider border border-slate-700";
             }
@@ -379,6 +421,7 @@
                 gameStatus = data.status;
                 
                 updateHeaderStatus();
+                refreshPublicDashboard(); // Update tabel pantauan publik
                 
                 if(currentUser && currentUser.username !== 'Theo') {
                     currentUser = usersDB.find(u => u.username === currentUser.username) || currentUser;
@@ -399,7 +442,7 @@
         setInterval(() => fetchDatabase(false), 10000); 
 
         function showScreen(screenId) {
-            document.querySelectorAll('#screen-landing, #screen-home, #screen-register, #screen-login, #screen-admin-login, #screen-user-dashboard, #screen-admin-dashboard').forEach(el => {
+            document.querySelectorAll('#screen-landing, #screen-home, #screen-register, #screen-login, #screen-admin-login, #screen-user-dashboard, #screen-admin-dashboard, #screen-public-progress').forEach(el => {
                 el.classList.add('hidden'); el.classList.remove('flex');
             });
             document.getElementById(screenId).classList.remove('hidden');
@@ -407,7 +450,7 @@
 
             const btnLogout = document.getElementById('btn-logout');
             const btnRefresh = document.getElementById('btn-refresh');
-            if(screenId === 'screen-landing' || screenId === 'screen-home') { 
+            if(screenId === 'screen-landing' || screenId === 'screen-home' || screenId === 'screen-public-progress') { 
                 btnLogout.classList.add('hidden'); btnRefresh.classList.add('hidden'); 
             } else { 
                 btnLogout.classList.remove('hidden'); btnRefresh.classList.remove('hidden'); 
@@ -417,6 +460,10 @@
         function logout() {
             currentUser = null;
             document.querySelectorAll('input, select').forEach(el => el.value = '');
+            
+            // Reset state tombol login saat logout
+            checkRegReady(); checkLoginReady(); checkAdminReady();
+            
             showScreen('screen-home');
         }
 
@@ -429,6 +476,38 @@
                 header.innerText = "STATUS: TARUHAN DITUTUP (LOCKED)";
                 header.className = "text-xs text-red-500 mt-1 font-black uppercase tracking-widest";
             }
+        }
+
+        // FUNGSI RENDER CCTV PUBLIK (Sama seperti punya admin tapi beda elemen HTML)
+        function refreshPublicDashboard() {
+            const pBody = document.getElementById('public-progress-body');
+            if(!pBody) return;
+            pBody.innerHTML = '';
+            
+            let adaPeserta = false;
+            usersDB.forEach(u => {
+                if (u.username === 'Theo') return;
+                
+                adaPeserta = true;
+                let hasDaftar = true; 
+                let hasBeli = (u.chips > 0 || u.pending_chips > 0 || u.unpaid_bill > 0 || u.totalpay > 0);
+                let hasPasang = (u.guesses && u.guesses.trim() !== "");
+
+                const tickHTML = `<i class="fa-solid fa-circle-check text-green-400 text-lg drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]"></i>`;
+                const crossHTML = `<i class="fa-solid fa-minus text-slate-600 text-sm"></i>`;
+
+                const row = document.createElement('div');
+                row.className = "bg-slate-900 border border-slate-700 p-2 rounded-xl flex items-center text-center shadow-sm mb-1.5 fade-in";
+                row.innerHTML = `
+                    <div class="w-1/4 text-left pl-2 font-black text-sky-400 text-xs truncate">${u.username}</div>
+                    <div class="w-1/4">${hasDaftar ? tickHTML : crossHTML}</div>
+                    <div class="w-1/4">${hasBeli ? tickHTML : crossHTML}</div>
+                    <div class="w-1/4">${hasPasang ? tickHTML : crossHTML}</div>
+                `;
+                pBody.appendChild(row);
+            });
+
+            if (!adaPeserta) pBody.innerHTML = '<div class="text-center text-slate-500 text-sm mt-10 font-bold">Belum ada peserta yang mendaftar.</div>';
         }
 
         async function registerUser() {
@@ -578,9 +657,6 @@
         }
 
         function refreshAdminDashboard() {
-            // ==========================================
-            // RENDER VIEW 1: TRANSAKSI CHIP & TEBAKAN
-            // ==========================================
             const tbody = document.getElementById('admin-table-body');
             tbody.innerHTML = '';
             
@@ -643,20 +719,15 @@
             });
             if (!adaTransaksi) tbody.innerHTML = '<div class="text-center text-slate-500 text-sm mt-10 font-bold">Belum ada transaksi chip di ronde ini.</div>';
 
-
-            // ==========================================
-            // RENDER VIEW 2: PROGRESS PEMAIN (CCTV THEO)
-            // ==========================================
             const pBody = document.getElementById('admin-progress-body');
             pBody.innerHTML = '';
             
             let adaPeserta = false;
             usersDB.forEach(u => {
-                // Sembunyikan Theo dari list pantauan, karena dia bosnya
                 if (u.username === 'Theo') return;
                 
                 adaPeserta = true;
-                let hasDaftar = true; // Selalu true kalau masuk loop ini
+                let hasDaftar = true; 
                 let hasBeli = (u.chips > 0 || u.pending_chips > 0 || u.unpaid_bill > 0 || u.totalpay > 0);
                 let hasPasang = (u.guesses && u.guesses.trim() !== "");
 
